@@ -287,11 +287,12 @@ app.get("/payment", function(req, res) {
     document.getElementById("s-ref").textContent = ref;
 
     /* Build redirect URL — pass name/email so BD can pre-fill the signup form */
-    var url = REDIRECT +
-      "?member_name="  + encodeURIComponent(name)  +
-      "&member_email=" + encodeURIComponent(email) +
-      "&plan="         + encodeURIComponent(label) +
-      "&paid_ref="     + encodeURIComponent(ref);
+    /* Redirect through /go page — handles scroll and shows clear instructions */
+    var url = BASE + "/go" +
+      "?email=" + encodeURIComponent(email) +
+      "&name="  + encodeURIComponent(name)  +
+      "&plan="  + encodeURIComponent(label) +
+      "&ref="   + encodeURIComponent(ref);
 
     document.getElementById("s-btn").href = url;
 
@@ -393,6 +394,19 @@ app.get("/verify/:ref", function(req, res){
 /* ══════════════════════════════════════════════════════════════════════════
    HEALTH CHECK
    ══════════════════════════════════════════════════════════════════════════ */
+
+/* GO PAGE - clean redirect page that shows payment summary and redirects to BD signup */
+app.get("/go", function(req, res) {
+  var email = req.query.email || "";
+  var name  = req.query.name  || "";
+  var plan  = req.query.plan  || "";
+  var ref   = req.query.ref   || "";
+  var checkoutUrl = BD_SIGNUP_URL + "?member_email=" + encodeURIComponent(email) + "&member_name=" + encodeURIComponent(name);
+
+  res.setHeader("Content-Type", "text/html");
+  res.send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>Create Your Account</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f5f7f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}.card{background:#fff;border-radius:14px;padding:40px 32px;max-width:480px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08)}.tick{font-size:56px;margin-bottom:16px}h2{font-size:22px;font-weight:bold;color:#1a6b3c;margin-bottom:10px}.pill{display:inline-block;background:#e6f4ea;color:#1a6b3c;font-size:13px;font-weight:bold;padding:5px 14px;border-radius:20px;margin-bottom:18px}p{font-size:14px;color:#555;line-height:1.7;margin-bottom:20px}.note{background:#fff8e6;border-left:4px solid #f5a623;border-radius:0 8px 8px 0;padding:12px 14px;text-align:left;font-size:13px;color:#7a5800;margin-bottom:24px;line-height:1.6}.note strong{color:#5a4000}.cta{display:block;background:#1a6b3c;color:#fff;padding:16px 24px;border-radius:8px;font-size:16px;font-weight:bold;text-decoration:none;margin-bottom:8px}.counter{font-size:13px;color:#888}.ref{margin-top:20px;background:#f5f5f5;border-radius:6px;padding:10px 14px;font-size:11px;color:#888;text-align:left}.ref code{font-family:monospace;color:#333;font-size:12px}</style></head><body><div class=\"card\"><div class=\"tick\">&#9989;</div><h2>Payment Confirmed!</h2><div class=\"pill\">" + (plan || "Membership Plan") + "</div><p>Your payment has been received. Now create your account to access all your membership features.</p><div class=\"note\"><strong>Important:</strong> Use <strong>" + email + "</strong> as your email on the next page so we can activate your paid plan promptly.</div><a id=\"cta\" href=\"" + checkoutUrl + "\" class=\"cta\">Create My Account Now &rarr;</a><div class=\"counter\" id=\"ctr\">Redirecting in <strong id=\"s\">5</strong> seconds...</div>" + (ref ? "<div class=\"ref\">Payment reference: <code>" + ref + "</code></div>" : "") + "</div><script>var s=5,u=" + JSON.stringify(checkoutUrl) + ";var t=setInterval(function(){s--;document.getElementById(\"s\").textContent=s;if(s<=0){clearInterval(t);document.getElementById(\"ctr\").textContent=\"Redirecting now...\";window.location.href=u;}},1000);</script></body></html>");
+});
+
 app.get("/", function(req, res){ res.send("PropertyConnect Paystack Server — OK"); });
 
 /* ── HELPERS ─────────────────────────────────────────────────────────────── */
