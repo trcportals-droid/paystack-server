@@ -6,7 +6,7 @@ const fetch      = require("node-fetch");
 
 const app    = express();
 const SECRET = process.env.PAYSTACK_SECRET_KEY;
-const SELF   = "https://paystack-server-production-a0ee.up.railway.app";
+const SELF   = process.env.SERVER_URL || "https://paystack-server-production-a0ee.up.railway.app";
 const BD_SIGNUP_URL = "https://www.propertyconnect.ng/checkout/5";
 
 app.use("/webhook/paystack", express.raw({ type: "application/json" }));
