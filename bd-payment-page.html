@@ -1,0 +1,289 @@
+<!-- 
+  BRILLIANT DIRECTORIES — PAYSTACK PAYMENT PAGE
+  ─────────────────────────────────────────────
+  BEFORE PUBLISHING:
+  1. Replace PAYSTACK_PUBLIC_KEY with your real pk_test_ or pk_live_ key
+  2. Replace RAILWAY_URL with your actual Railway domain
+  3. Update BRAND_NAME to your site name
+  Paste this entire block into your BD page in HTML/Source mode.
+-->
+
+<style>
+  .ps-wrap { max-width: 620px; margin: 40px auto; padding: 0 16px; font-family: Arial, sans-serif; color: #1a1a1a; }
+  .ps-heading { text-align: center; margin-bottom: 6px; font-size: 24px; font-weight: bold; }
+  .ps-sub { text-align: center; color: #666; margin-bottom: 28px; font-size: 14px; }
+
+  /* ── Billing toggle ── */
+  .toggle-wrap { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .toggle-label { font-size: 14px; color: #555; }
+  .toggle-label.active { color: #006400; font-weight: bold; }
+  .toggle-track { width: 52px; height: 28px; background: #ccc; border-radius: 14px; position: relative; cursor: pointer; transition: background 0.3s; }
+  .toggle-track.yearly { background: #006400; }
+  .toggle-thumb { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .toggle-track.yearly .toggle-thumb { left: 27px; }
+  .save-badge { background: #e6f4ea; color: #2d6a2d; font-size: 12px; font-weight: bold; padding: 3px 10px; border-radius: 20px; }
+
+  /* ── Plan cards ── */
+  .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .plan-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 24px 20px; cursor: pointer; text-align: center; transition: all 0.2s; background: white; position: relative; }
+  .plan-card:hover { border-color: #aaa; }
+  .plan-card.selected { border-color: #006400; background: #f0fff4; }
+  .plan-card.popular::before { content: "Most Popular"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #006400; color: white; font-size: 11px; font-weight: bold; padding: 3px 12px; border-radius: 20px; white-space: nowrap; }
+  .plan-name { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #555; margin-bottom: 10px; }
+  .plan-price { font-size: 32px; font-weight: bold; color: #006400; line-height: 1; }
+  .plan-period { font-size: 12px; color: #888; margin-top: 4px; }
+  .plan-yearly-note { font-size: 11px; color: #2d6a2d; background: #e6f4ea; border-radius: 4px; padding: 3px 8px; display: inline-block; margin-top: 6px; }
+  .plan-original { font-size: 12px; color: #999; text-decoration: line-through; margin-top: 2px; }
+
+  /* ── Form ── */
+  .ps-input { width: 100%; padding: 13px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+  .ps-input:focus { border-color: #006400; }
+
+  /* ── Button ── */
+  .ps-btn { width: 100%; padding: 16px; background: #006400; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+  .ps-btn:hover:not(:disabled) { background: #005000; }
+  .ps-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* ── Status ── */
+  .ps-status { margin-top: 16px; text-align: center; font-size: 14px; min-height: 22px; line-height: 1.5; }
+  .ps-lock { text-align: center; font-size: 12px; color: #999; margin-top: 12px; }
+
+  @media (max-width: 480px) {
+    .plans-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="ps-wrap">
+
+  <h2 class="ps-heading">Choose Your Plan</h2>
+  <p class="ps-sub">Join hundreds of members growing with us</p>
+
+  <!-- BILLING TOGGLE -->
+  <div class="toggle-wrap">
+    <span class="toggle-label active" id="lbl-monthly">Monthly</span>
+    <div class="toggle-track" id="billing-toggle" onclick="switchBilling()">
+      <div class="toggle-thumb"></div>
+    </div>
+    <span class="toggle-label" id="lbl-yearly">Yearly</span>
+    <span class="save-badge">Save 13%</span>
+  </div>
+
+  <!-- PLAN CARDS -->
+  <div class="plans-grid">
+
+    <!-- Professional Plan -->
+    <div class="plan-card" id="card-professional" onclick="selectPlan('professional')">
+      <div class="plan-name">Professional</div>
+      <div class="plan-price" id="price-professional">₦2,500</div>
+      <div class="plan-period" id="period-professional">per month</div>
+      <div class="plan-yearly-note" id="note-professional" style="display:none;">
+        Billed as ₦26,100 / year
+      </div>
+      <div class="plan-original" id="original-professional" style="display:none;">
+        ₦30,000 / year
+      </div>
+    </div>
+
+    <!-- Enterprise Plan -->
+    <div class="plan-card popular" id="card-enterprise" onclick="selectPlan('enterprise')">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price" id="price-enterprise">₦5,000</div>
+      <div class="plan-period" id="period-enterprise">per month</div>
+      <div class="plan-yearly-note" id="note-enterprise" style="display:none;">
+        Billed as ₦52,200 / year
+      </div>
+      <div class="plan-original" id="original-enterprise" style="display:none;">
+        ₦60,000 / year
+      </div>
+    </div>
+
+  </div>
+
+  <!-- USER DETAILS -->
+  <input class="ps-input" type="text"  id="user-name"  placeholder="Your full name" />
+  <input class="ps-input" type="email" id="user-email" placeholder="Your email address" />
+
+  <!-- PAY BUTTON -->
+  <button class="ps-btn" id="pay-btn" onclick="payWithPaystack()" disabled>
+    Select a plan to continue
+  </button>
+
+  <div class="ps-status" id="pay-status"></div>
+  <p class="ps-lock">🔒 Secured by Paystack &nbsp;|&nbsp; SSL encrypted</p>
+
+</div>
+
+<!-- Paystack JS SDK -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<script>
+  // ── CONFIGURATION — UPDATE THESE 2 LINES ────────────────────────────────────
+  var PAYSTACK_PUBLIC_KEY = "pk_test_c0eb42facba648a6b6b6332067a4c31b3cc3fc48";
+  var RAILWAY_URL         = "https://YOUR-APP.up.railway.app";
+  // ───────────────────────────────────────────────────────────────────────────
+
+  var billingMode    = "monthly";   // "monthly" or "yearly"
+  var selectedPlan   = null;        // "professional" or "enterprise"
+
+  var pricing = {
+    professional: { monthly: 2500,  yearly: 26100 },
+    enterprise:   { monthly: 5000,  yearly: 52200 }
+  };
+
+  var planLabels = {
+    professional: "Professional",
+    enterprise:   "Enterprise"
+  };
+
+  // ── BILLING TOGGLE ────────────────────────────────────────────────────────
+  function switchBilling() {
+    billingMode = billingMode === "monthly" ? "yearly" : "monthly";
+
+    var track = document.getElementById("billing-toggle");
+    var lblM  = document.getElementById("lbl-monthly");
+    var lblY  = document.getElementById("lbl-yearly");
+
+    if (billingMode === "yearly") {
+      track.classList.add("yearly");
+      lblY.classList.add("active");
+      lblM.classList.remove("active");
+    } else {
+      track.classList.remove("yearly");
+      lblM.classList.add("active");
+      lblY.classList.remove("active");
+    }
+
+    refreshPriceDisplay("professional");
+    refreshPriceDisplay("enterprise");
+    updateButton();
+  }
+
+  function refreshPriceDisplay(plan) {
+    var price    = pricing[plan][billingMode];
+    var priceEl  = document.getElementById("price-" + plan);
+    var periodEl = document.getElementById("period-" + plan);
+    var noteEl   = document.getElementById("note-" + plan);
+    var origEl   = document.getElementById("original-" + plan);
+
+    if (billingMode === "yearly") {
+      priceEl.textContent  = "₦" + price.toLocaleString();
+      periodEl.textContent = "per year";
+      noteEl.style.display  = "inline-block";
+      origEl.style.display  = "block";
+    } else {
+      priceEl.textContent  = "₦" + price.toLocaleString();
+      periodEl.textContent = "per month";
+      noteEl.style.display  = "none";
+      origEl.style.display  = "none";
+    }
+  }
+
+  // ── PLAN SELECTION ─────────────────────────────────────────────────────────
+  function selectPlan(plan) {
+    ["professional", "enterprise"].forEach(function(p) {
+      document.getElementById("card-" + p).classList.remove("selected");
+    });
+    document.getElementById("card-" + plan).classList.add("selected");
+    selectedPlan = plan;
+    updateButton();
+  }
+
+  function updateButton() {
+    var btn = document.getElementById("pay-btn");
+    if (!selectedPlan) {
+      btn.textContent = "Select a plan to continue";
+      btn.disabled = true;
+      return;
+    }
+    var amount = pricing[selectedPlan][billingMode];
+    var label  = planLabels[selectedPlan];
+    var period = billingMode === "yearly" ? "/yr" : "/mo";
+    btn.textContent = "Pay ₦" + amount.toLocaleString() + period + " — " + label;
+    btn.disabled = false;
+  }
+
+  // ── PAYSTACK PAYMENT ───────────────────────────────────────────────────────
+  function payWithPaystack() {
+    var name  = document.getElementById("user-name").value.trim();
+    var email = document.getElementById("user-email").value.trim();
+
+    if (!name) {
+      setStatus("Please enter your full name.", "crimson"); return;
+    }
+    if (!email || !email.includes("@")) {
+      setStatus("Please enter a valid email address.", "crimson"); return;
+    }
+    if (!selectedPlan) {
+      setStatus("Please select a plan.", "crimson"); return;
+    }
+
+    var amount    = pricing[selectedPlan][billingMode];
+    var planLabel = planLabels[selectedPlan] + " (" + billingMode + ")";
+    var ref       = "BD_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
+
+    var handler = PaystackPop.setup({
+      key:      PAYSTACK_PUBLIC_KEY,
+      email:    email,
+      amount:   amount * 100,       // Paystack requires kobo
+      currency: "NGN",
+      ref:      ref,
+      metadata: {
+        name:    name,
+        plan:    planLabel,
+        billing: billingMode,
+        custom_fields: [
+          { display_name: "Name",    variable_name: "name",    value: name },
+          { display_name: "Plan",    variable_name: "plan",    value: planLabel },
+          { display_name: "Billing", variable_name: "billing", value: billingMode }
+        ]
+      },
+      callback: function(response) {
+        setStatus("Verifying payment...", "#006400");
+        document.getElementById("pay-btn").disabled = true;
+        verifyPayment(response.reference);
+      },
+      onClose: function() {
+        setStatus("Payment window closed. Click the button to try again.", "orange");
+      }
+    });
+
+    handler.openIframe();
+  }
+
+  // ── VERIFY ─────────────────────────────────────────────────────────────────
+  function verifyPayment(reference) {
+    fetch(RAILWAY_URL + "/verify/" + reference)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          setStatus(
+            "✅ Payment of ₦" + data.amount.toLocaleString() + " confirmed! " +
+            "A confirmation email has been sent to you. " +
+            "Reference: " + data.reference,
+            "#006400"
+          );
+          document.getElementById("pay-btn").textContent = "Payment Complete ✅";
+          document.getElementById("pay-btn").style.background = "#2d6a2d";
+        } else {
+          document.getElementById("pay-btn").disabled = false;
+          setStatus(
+            "❌ Could not verify payment. Please contact support with reference: " + reference,
+            "crimson"
+          );
+        }
+      })
+      .catch(function() {
+        document.getElementById("pay-btn").disabled = false;
+        setStatus(
+          "⚠️ Network error during verification. Contact support with reference: " + reference,
+          "orange"
+        );
+      });
+  }
+
+  function setStatus(msg, color) {
+    var el = document.getElementById("pay-status");
+    el.textContent  = msg;
+    el.style.color  = color || "#333";
+  }
+</script>
