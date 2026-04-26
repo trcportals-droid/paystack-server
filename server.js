@@ -10,7 +10,7 @@ const SELF   = "https://paystack-server-production-a0ee.up.railway.app";
 
 /* After successful payment, both paid plans redirect here.
    Customer lands on this page and creates their BD account. */
-const BD_SIGNUP_URL = "https://www.propertyconnect.ng/Membership_Plans";
+const BD_SIGNUP_URL = "https://www.propertyconnect.ng/checkout/5";
 
 app.use("/webhook/paystack", express.raw({ type: "application/json" }));
 app.use(express.json());
@@ -154,7 +154,7 @@ app.get("/payment", function(req, res) {
   <div class="s-title">Payment Confirmed!</div>
   <div class="s-sub" id="s-msg"></div>
   <a id="s-btn" href="${BD_SIGNUP_URL}" class="s-btn">
-    Complete My Account Setup &rarr;
+    Create My Free Account &rarr;
   </a>
   <p class="s-note">A receipt has been sent to your email address.</p>
   <div class="ref-box">
@@ -279,8 +279,10 @@ app.get("/payment", function(req, res) {
     document.getElementById("success-screen").style.display  = "block";
 
     document.getElementById("s-msg").innerHTML =
-      "&#8358;" + Number(amount).toLocaleString() + " received for <strong>" + label + "</strong>.<br/><br/>" +
-      "Click below to complete setting up your account and access all your membership features.";
+      "u20A6" + Number(amount).toLocaleString() + " received for <strong>" + label + "</strong>.<br/><br/>" +
+      "<strong>Next step:</strong> Create your free account below using the <strong>same email address</strong> you just paid with.<br/><br/>" +
+      "Your paid plan features will be activated within <strong>1 hour</strong> of account creation. " +
+      "You will receive a confirmation email once your access is fully live.";
 
     document.getElementById("s-ref").textContent = ref;
 
@@ -298,7 +300,7 @@ app.get("/payment", function(req, res) {
     var t = setInterval(function(){
       secs--;
       document.getElementById("s-btn").textContent =
-        "Complete My Account Setup \u2192 (redirecting in " + secs + "s)";
+        "Create My Free Account 2192 (redirecting in " + secs + "s)";
       if(secs <= 0){
         clearInterval(t);
         /* Send message to parent BD page to trigger the redirect.
@@ -409,8 +411,8 @@ function receiptHTML(name, plan, billing, amount, ref){
     "<div style='border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px;padding:24px'>" +
     "<p>Hello <strong>" + name + "</strong>,</p>" +
     "<p style='margin:12px 0'>Your payment for <strong>" + plan + "</strong> has been confirmed. " +
-    "You should have been redirected to complete your account setup. " +
-    "If not, <a href='" + BD_SIGNUP_URL + "' style='color:#1a6b3c'>click here to continue</a>.</p>" +
+    "You should have been redirected to create a free account on PropertyConnect.ng using your payment email. " +
+    "Your paid plan will be activated within 1 hour. If you were not redirected, <a href='" + BD_SIGNUP_URL + "' style='color:#1a6b3c'>click here to create your account</a>.</p>" +
     "<table style='border-collapse:collapse;width:100%;margin:18px 0'>" +
     "<tr style='background:#f5f5f5'><td style='padding:10px;border:1px solid #ddd;width:40%'><b>Plan</b></td><td style='padding:10px;border:1px solid #ddd'>" + plan + "</td></tr>" +
     "<tr><td style='padding:10px;border:1px solid #ddd'><b>Billing</b></td><td style='padding:10px;border:1px solid #ddd'>" + billing.charAt(0).toUpperCase() + billing.slice(1) + "</td></tr>" +
