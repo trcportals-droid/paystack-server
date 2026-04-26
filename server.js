@@ -301,7 +301,15 @@ app.get("/payment", function(req, res) {
         "Complete My Account Setup \u2192 (redirecting in " + secs + "s)";
       if(secs <= 0){
         clearInterval(t);
-        try { window.top.location.href = url; } catch(e){ window.location.href = url; }
+        /* Send message to parent BD page to trigger the redirect.
+           Cross-origin iframes cannot redirect the parent directly —
+           postMessage is the correct browser-safe way to do this.    */
+        try {
+          window.parent.postMessage({ pcPaymentSuccess: true, redirectUrl: url }, "*");
+        } catch(e) {
+          /* Fallback: redirect within the iframe itself */
+          window.location.href = url;
+        }
       }
     }, 1000);
   }
