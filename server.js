@@ -287,7 +287,6 @@ app.get("/payment", function(req, res) {
     document.getElementById("s-ref").textContent = ref;
 
     /* Build redirect URL — pass name/email so BD can pre-fill the signup form */
-    /* Redirect through /go page — handles scroll and shows clear instructions */
     var url = BASE + "/go" +
       "?email=" + encodeURIComponent(email) +
       "&name="  + encodeURIComponent(name)  +
@@ -304,13 +303,13 @@ app.get("/payment", function(req, res) {
         "Create My Free Account 2192 (redirecting in " + secs + "s)";
       if(secs <= 0){
         clearInterval(t);
-        /* Send message to parent BD page to trigger the redirect.
-           Cross-origin iframes cannot redirect the parent directly —
-           postMessage is the correct browser-safe way to do this.    */
+        /* Navigate the top-level window directly.
+           Setting location.href on a cross-origin parent IS permitted
+           by browsers (only reading cross-origin properties is blocked). */
         try {
-          window.parent.postMessage({ pcPaymentSuccess: true, redirectUrl: url }, "*");
+          window.top.location.href = url;
         } catch(e) {
-          /* Fallback: redirect within the iframe itself */
+          /* Fallback if blocked — open in same tab */
           window.location.href = url;
         }
       }
@@ -395,16 +394,100 @@ app.get("/verify/:ref", function(req, res){
    HEALTH CHECK
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* GO PAGE - clean redirect page that shows payment summary and redirects to BD signup */
+/* GO PAGE — full-page bridge between payment iframe and BD signup */
 app.get("/go", function(req, res) {
   var email = req.query.email || "";
   var name  = req.query.name  || "";
   var plan  = req.query.plan  || "";
   var ref   = req.query.ref   || "";
-  var checkoutUrl = BD_SIGNUP_URL + "?member_email=" + encodeURIComponent(email) + "&member_name=" + encodeURIComponent(name);
+  var checkoutUrl = BD_SIGNUP_URL;
 
   res.setHeader("Content-Type", "text/html");
-  res.send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>Create Your Account</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f5f7f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}.card{background:#fff;border-radius:14px;padding:40px 32px;max-width:480px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08)}.tick{font-size:56px;margin-bottom:16px}h2{font-size:22px;font-weight:bold;color:#1a6b3c;margin-bottom:10px}.pill{display:inline-block;background:#e6f4ea;color:#1a6b3c;font-size:13px;font-weight:bold;padding:5px 14px;border-radius:20px;margin-bottom:18px}p{font-size:14px;color:#555;line-height:1.7;margin-bottom:20px}.note{background:#fff8e6;border-left:4px solid #f5a623;border-radius:0 8px 8px 0;padding:12px 14px;text-align:left;font-size:13px;color:#7a5800;margin-bottom:24px;line-height:1.6}.note strong{color:#5a4000}.cta{display:block;background:#1a6b3c;color:#fff;padding:16px 24px;border-radius:8px;font-size:16px;font-weight:bold;text-decoration:none;margin-bottom:8px}.counter{font-size:13px;color:#888}.ref{margin-top:20px;background:#f5f5f5;border-radius:6px;padding:10px 14px;font-size:11px;color:#888;text-align:left}.ref code{font-family:monospace;color:#333;font-size:12px}</style></head><body><div class=\"card\"><div class=\"tick\">&#9989;</div><h2>Payment Confirmed!</h2><div class=\"pill\">" + (plan || "Membership Plan") + "</div><p>Your payment has been received. Now create your account to access all your membership features.</p><div class=\"note\"><strong>Important:</strong> Use <strong>" + email + "</strong> as your email on the next page so we can activate your paid plan promptly.</div><a id=\"cta\" href=\"" + checkoutUrl + "\" class=\"cta\">Create My Account Now &rarr;</a><div class=\"counter\" id=\"ctr\">Redirecting in <strong id=\"s\">5</strong> seconds...</div>" + (ref ? "<div class=\"ref\">Payment reference: <code>" + ref + "</code></div>" : "") + "</div><script>var s=5,u=" + JSON.stringify(checkoutUrl) + ";var t=setInterval(function(){s--;document.getElementById(\"s\").textContent=s;if(s<=0){clearInterval(t);document.getElementById(\"ctr\").textContent=\"Redirecting now...\";window.location.href=u;}},1000);</script></body></html>");
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Create Your Account — PropertyConnect.ng</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;background:#f0f4f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  .card{background:#fff;border-radius:16px;padding:40px 32px;max-width:500px;width:100%;text-align:center;box-shadow:0 6px 30px rgba(0,0,0,.10)}
+  .tick{font-size:60px;margin-bottom:14px}
+  h2{font-size:23px;font-weight:bold;color:#1a6b3c;margin-bottom:8px}
+  .pill{display:inline-block;background:#e6f4ea;color:#1a6b3c;font-size:13px;font-weight:bold;padding:5px 16px;border-radius:20px;margin-bottom:18px}
+  .intro{font-size:14px;color:#555;line-height:1.7;margin-bottom:20px}
+  .email-box{background:#f0fff4;border:2px solid #1a6b3c;border-radius:10px;padding:14px 16px;margin-bottom:20px;text-align:left}
+  .email-label{font-size:12px;color:#555;margin-bottom:4px}
+  .email-row{display:flex;align-items:center;gap:10px}
+  .email-val{font-size:16px;font-weight:bold;color:#1a1a1a;flex:1;word-break:break-all}
+  .copy-btn{background:#1a6b3c;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;flex-shrink:0}
+  .copy-btn:active{background:#0f4a28}
+  .note{background:#fff8e6;border-left:4px solid #f5a623;border-radius:0 8px 8px 0;padding:12px 14px;text-align:left;font-size:13px;color:#7a5800;margin-bottom:24px;line-height:1.6}
+  .cta{display:block;background:#1a6b3c;color:#fff;padding:16px 24px;border-radius:10px;font-size:16px;font-weight:bold;text-decoration:none;margin-bottom:10px}
+  .cta:hover{background:#0f4a28}
+  .counter{font-size:13px;color:#888;margin-bottom:20px}
+  .ref{background:#f5f5f5;border-radius:8px;padding:10px 14px;font-size:11px;color:#888;text-align:left;margin-top:4px}
+  .ref code{font-family:monospace;color:#333;font-size:12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="tick">&#9989;</div>
+  <h2>Payment Confirmed!</h2>
+  <div class="pill">${plan || "Membership Plan"}</div>
+
+  <p class="intro">Your Naira payment was received successfully.<br/>
+  <strong>Use the email below</strong> when creating your account so we can activate your paid features within 1 hour.</p>
+
+  <div class="email-box">
+    <div class="email-label">Use this email address on the next page:</div>
+    <div class="email-row">
+      <div class="email-val" id="em">${email}</div>
+      <button class="copy-btn" onclick="copyEmail()">Copy</button>
+    </div>
+  </div>
+
+  <div class="note">
+    &#9888; On the <strong>Create Account</strong> form, type this email exactly as shown above.
+    This lets us match your payment and activate your <strong>${plan || "paid"}</strong> access.
+  </div>
+
+  <a id="cta" href="${checkoutUrl}" class="cta">Create My Free Account &rarr;</a>
+  <div class="counter">Redirecting automatically in <strong id="s">5</strong> seconds...</div>
+
+  ${ref ? '<div class="ref">Payment reference: <code>' + ref + '</code></div>' : ""}
+</div>
+
+<script>
+  /* Break out of any iframe — navigate the top-level browser window */
+  if(window.top !== window.self){
+    try{ window.top.location.href = window.location.href; }catch(e){}
+  }
+
+  function copyEmail(){
+    var txt = document.getElementById("em").textContent;
+    if(navigator.clipboard){ navigator.clipboard.writeText(txt); }
+    else{ var el=document.createElement("textarea");el.value=txt;document.body.appendChild(el);el.select();document.execCommand("copy");document.body.removeChild(el); }
+    var btn = event.target;
+    btn.textContent = "Copied!";
+    setTimeout(function(){ btn.textContent = "Copy"; }, 2000);
+  }
+
+  var secs = 5;
+  var dest = ${JSON.stringify(checkoutUrl)};
+  var t = setInterval(function(){
+    secs--;
+    document.getElementById("s").textContent = secs;
+    if(secs <= 0){
+      clearInterval(t);
+      document.getElementById("cta").textContent = "Opening now...";
+      window.location.href = dest;
+    }
+  }, 1000);
+</script>
+</body>
+</html>\`);
 });
 
 app.get("/", function(req, res){ res.send("PropertyConnect Paystack Server — OK"); });
